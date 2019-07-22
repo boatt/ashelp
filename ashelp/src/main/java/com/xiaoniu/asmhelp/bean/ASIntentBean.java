@@ -1,11 +1,15 @@
 package com.xiaoniu.asmhelp.bean;
 
-public class ASIntentBean {
+import java.io.Serializable;
+
+public class ASIntentBean implements Serializable {
 
     private String packageName;
     private String activityName;
     private String actionName;
     private String uriData;
+    //package:com.xiaoniu.zuilaidian
+    private String uriDataFull;
     private String componenPkg;
     private String componenCls;
     private String extra;
@@ -40,6 +44,14 @@ public class ASIntentBean {
 
     public void setUriData(String uriData) {
         this.uriData = uriData;
+    }
+
+    public String getUriDataFull() {
+        return uriDataFull;
+    }
+
+    public void setUriDataFull(String uriDataFull) {
+        this.uriDataFull = uriDataFull;
     }
 
     public String getComponenPkg() {

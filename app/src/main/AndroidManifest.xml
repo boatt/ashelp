@@ -72,7 +72,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name="com.example.asmhelp.SystemTipsActivity"
+            android:theme="@style/transparent_activity" />
         <service
             android:name="com.xiaoniu.asmhelp.server.AccessibilityServiceMonitor"
             android:enabled="true"

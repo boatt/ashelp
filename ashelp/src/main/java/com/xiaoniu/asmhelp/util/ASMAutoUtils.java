@@ -33,8 +33,9 @@ public class ASMAutoUtils {
     public static final int WHAT_JUMP = 1;
     public static final int WHAT_FIND = 2;
     public static final int WHAT_COMPLETE = 3;
-    final int TOTAL_COUNT = 800;
+    final int TOTAL_COUNT = 1800;
     int COUNT = 0;
+    int reconnection = 0;
     boolean isFind = false;
     boolean isScrollableComplete = false;
 
@@ -54,7 +55,7 @@ public class ASMAutoUtils {
     }
 
     public void start(ASBase data) {
-        Log.d(TAG, "start: "+data.describe);
+        Log.d(TAG, "start: " + data.describe);
         mBaseData = data;
         mHandler.removeMessages(WHAT_JUMP);
         mHandler.sendEmptyMessageDelayed(WHAT_JUMP, mBaseData.delay_time);
@@ -67,27 +68,56 @@ public class ASMAutoUtils {
             switch (msg.what) {
                 case WHAT_JUMP:
                     COUNT = 0;
+                    reconnection = 0;
                     if (mASMListener != null) {
                         mASMListener.jumpActivity(mBaseData.intent);
 
                         mHandler.removeMessages(WHAT_FIND);
-                        mHandler.sendEmptyMessageDelayed(WHAT_FIND, mBaseData.delay_time);
+                        mHandler.sendEmptyMessageDelayed(WHAT_FIND, mBaseData.step.get(0).delay_time);
                     }
                     break;
                 case WHAT_FIND:
                     isFind = false;
-                    Log.d(TAG, "handleMessage: getPackageName" + AccessibilityServiceMonitor.getInstance().getPackageName());
+
                     List<ASStepBean> step = mBaseData.step;
                     if (step.size() > 0) {
                         ASStepBean stepBean = step.get(0);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                             if (stepBean.getClick_type().equals("system")) {
+                                AccessibilityNodeInfo rootWindow = AccessibilityServiceMonitor.getInstance().getRootInActiveWindow();
+                                if (rootWindow != null) {
+                                    CharSequence packageName = rootWindow.getPackageName();
+                                    if (TextUtils.equals(packageName, AccessibilityServiceMonitor.getInstance().getPackageName())) {
+                                        mHandler.removeMessages(WHAT_FIND);
+                                        mHandler.removeMessages(WHAT_COMPLETE);
+                                        return;
+                                    }
+                                }
                                 AccessibilityServiceMonitor.getInstance().performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
                                 step.remove(stepBean);
                                 mHandler.removeMessages(WHAT_FIND);
                                 mHandler.sendEmptyMessageDelayed(WHAT_FIND, stepBean.delay_time);
                             } else {
                                 AccessibilityNodeInfo rootInActiveWindow = AccessibilityServiceMonitor.getInstance().getRootInActiveWindow();
+                                if (rootInActiveWindow == null) {
+                                    reconnection++;
+                                    if (reconnection < 3) {
+                                        mHandler.removeMessages(WHAT_FIND);
+                                        mHandler.sendEmptyMessageDelayed(WHAT_FIND, 300);
+                                    } else {
+                                        AccessibilityServiceMonitor.getInstance().performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+                                    }
+                                    return;
+                                }
+                                AccessibilityNodeInfo rootWindow = AccessibilityServiceMonitor.getInstance().getRootInActiveWindow();
+                                if (rootWindow != null) {
+                                    CharSequence packageName = rootWindow.getPackageName();
+                                    if (TextUtils.equals(packageName, AccessibilityServiceMonitor.getInstance().getPackageName())) {
+                                        mHandler.removeMessages(WHAT_FIND);
+                                        mHandler.removeMessages(WHAT_COMPLETE);
+                                        return;
+                                    }
+                                }
                                 findClickView(rootInActiveWindow, stepBean);
                                 if (isFind) {
                                     step.remove(stepBean);
@@ -129,6 +159,7 @@ public class ASMAutoUtils {
                     continue;
                 }
                 CharSequence text = node.getText();
+                Log.d(TAG, "findClickView: COUNT:" + COUNT + " text " + text);
                 if (text != null && text.toString().contains(findText)) {
                     AccessibilityNodeInfo parent = node.getParent();
                     if (stepBean.getClick_type().equals("parent")) {
@@ -156,7 +187,7 @@ public class ASMAutoUtils {
                         }
                     }
                 }
-                Log.d(TAG, "findClickView: COUNT:" + COUNT);
+
                 //递归需要有出口，如果找500次没找到立即停止,可能由于适配问题权限压根没在这个界面
                 if (COUNT >= TOTAL_COUNT) {
                     isFind = true;
@@ -175,14 +206,7 @@ public class ASMAutoUtils {
 
     private void getAllChild(AccessibilityNodeInfo parent, ASStepBean stepBean) {
         if (stepBean.isFindId()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                List<AccessibilityNodeInfo> accessibilityNodeInfosByViewId = parent.findAccessibilityNodeInfosByViewId(stepBean.reality_node_id);
-                if (accessibilityNodeInfosByViewId.size() > 0) {
-                    AccessibilityNodeInfo child = accessibilityNodeInfosByViewId.get(0);
-                    Log.e(TAG, "============= findSwitchView 3 " + child.getClassName() + "==" + child.getViewIdResourceName() + "==" + child.isCheckable() + "==" + child.isClickable());
-                    clickNodeIsNoChecked(parent, stepBean, child);
-                }
-            }
+            findByID(parent, stepBean);
         } else {
             for (int j = 0; j < parent.getChildCount(); j++) {
                 AccessibilityNodeInfo child = parent.getChild(j);
@@ -199,6 +223,17 @@ public class ASMAutoUtils {
         }
     }
 
+    private void findByID(AccessibilityNodeInfo parent, ASStepBean stepBean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            List<AccessibilityNodeInfo> accessibilityNodeInfosByViewId = parent.findAccessibilityNodeInfosByViewId(stepBean.reality_node_id);
+            if (accessibilityNodeInfosByViewId.size() > 0) {
+                AccessibilityNodeInfo child = accessibilityNodeInfosByViewId.get(0);
+                Log.e(TAG, "============= findSwitchView 3 " + child.getClassName() + "==" + child.getViewIdResourceName() + "==" + child.isCheckable() + "==" + child.isClickable());
+                clickNodeIsNoChecked(parent, stepBean, child);
+            }
+        }
+    }
+
     /**
      * 点击一个未选中的节点
      *
@@ -210,6 +245,11 @@ public class ASMAutoUtils {
         boolean checked = child.isChecked();
         if (!checked) {
             boolean flag = child.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            if (!child.isChecked()) {
+                if (mASMListener != null) {
+                    mASMListener.pause(stepBean);
+                }
+            }
             if (!flag) {
                 child.performAction(AccessibilityNodeInfo.ACTION_SELECT);
                 //补偿点击
@@ -249,7 +289,7 @@ public class ASMAutoUtils {
                             child.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
                             isScrollableComplete = true;
                             mHandler.removeMessages(WHAT_FIND);
-                            mHandler.sendEmptyMessageDelayed(WHAT_FIND, stepBean.delay_time / 2);
+                            mHandler.sendEmptyMessageDelayed(WHAT_FIND, stepBean.delay_time / 4);
                         }
                     }
                 }
@@ -268,7 +308,7 @@ public class ASMAutoUtils {
                         node.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
                         isScrollableComplete = true;
                         mHandler.removeMessages(WHAT_FIND);
-                        mHandler.sendEmptyMessageDelayed(WHAT_FIND, stepBean.delay_time / 2);
+                        mHandler.sendEmptyMessageDelayed(WHAT_FIND, stepBean.delay_time / 4);
 
                     } else {
                         AccessibilityNodeInfo parent = node.getParent();
@@ -279,7 +319,7 @@ public class ASMAutoUtils {
                                 parent.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
                                 isScrollableComplete = true;
                                 mHandler.removeMessages(WHAT_FIND);
-                                mHandler.sendEmptyMessageDelayed(WHAT_FIND, stepBean.delay_time / 2);
+                                mHandler.sendEmptyMessageDelayed(WHAT_FIND, stepBean.delay_time / 3);
                                 break;
                             }
                             parent = parent.getParent();

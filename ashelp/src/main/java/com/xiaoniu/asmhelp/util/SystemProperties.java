@@ -4,10 +4,13 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Build.VERSION;
+import android.text.TextUtils;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Properties;
 
 public class SystemProperties {
 
@@ -15,12 +18,29 @@ public class SystemProperties {
 
     public static String getRom(String str, String str2) {
         try {
-            return (String) Class.forName("android.os.SystemProperties").getMethod("get", new Class[]{String.class, String.class}).invoke(null, new Object[]{str, str2});
+            Object get = Class.forName("android.os.SystemProperties").getMethod("get", new Class[]{String.class, String.class}).invoke(null, new Object[]{str, str2});
+            if (TextUtils.equals(get.toString(), "unkonw")) {
+                Properties property = getProperty();
+                get = property.get(str);
+            }
+            return (String) get;
         } catch (Exception unused) {
             return str2;
         }
     }
-    public String getMiuiVersion() {
+
+    public static Properties getProperty() {
+        Properties properties = new Properties();
+        try {
+            Process p = Runtime.getRuntime().exec("getprop");
+            properties.load(p.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties;
+    }
+
+    public static String getMiuiVersion() {
 
         String propName = "ro.miui.ui.version.name";
         String line;

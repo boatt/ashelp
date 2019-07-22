@@ -35,9 +35,9 @@ public class AccessibilityServiceMonitor extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        int eventType = event.getEventType();
-        int typeWindowStateChanged = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
-        Log.d(TAG, "onAccessibilityEvent: " + eventType + "typeWindowStateChanged:" + typeWindowStateChanged);
+//        int eventType = event.getEventType();
+//        int typeWindowStateChanged = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
+//        Log.d(TAG, "onAccessibilityEvent: " + eventType + "typeWindowStateChanged:" + typeWindowStateChanged);
 
     }
 

@@ -1,16 +1,49 @@
 package com.xiaoniu.asmhelp.bean;
 
-public class ASStepBean {
+import java.io.Serializable;
 
+public class ASStepBean implements Serializable {
+
+    /**
+     * 一步需要的延迟时间
+     */
     public int delay_time;
+    /**
+     * 需要找到的文本
+     */
     public String find_text;
+    /**
+     * 行为(点击, 选择)
+     */
     public String action_type;
+    /**
+     *   //点击类型,parent 点击这个控件的父容器,child点击指定的控件(reality_node_id 不能为空,findId=true 采用 accessibilityNodeInfosByViewId方式) system,点击系统的返回按键,self 点击自己
+     */
     public String click_type;
+    /**
+     * 精确查找
+     */
     public boolean findId;
+    /**
+     * 禁止滚动
+     */
     public boolean banScrollable;
+    /**
+     * 控件无法点击的提示文案
+     */
+    public String clickFailToast;
     public String reality_node_name;
+    /**
+     * 查找的ID findId为true 时reality_node_id为全路径ID
+     */
     public String reality_node_id;
+    /**
+     * 指定滚动的控件ID
+     */
     public String reality_scrollable_node_id;
+    /**
+     * 本次任务如果已经完成则移除下一步任务
+     */
     public boolean checkedRemoveNext;
 
     public int getDelay_time() {
@@ -92,4 +125,14 @@ public class ASStepBean {
     public void setCheckedRemoveNext(boolean checkedRemoveNext) {
         this.checkedRemoveNext = checkedRemoveNext;
     }
+
+    public String getClickFailToast() {
+        return clickFailToast;
+    }
+
+    public void setClickFailToast(String clickFailToast) {
+        this.clickFailToast = clickFailToast;
+    }
+
+
 }

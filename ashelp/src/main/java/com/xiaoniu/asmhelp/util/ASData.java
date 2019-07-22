@@ -70,29 +70,7 @@ public class ASData {
                 "   \"action_type\":\"GLOBAL_ACTION_BACK\"\n" +
                 "  },{\n" +
                 "   \"click_type\":\"system\",\n" +
-                "   \"delay_time\":600,\n" +
-                "   \"action_type\":\"GLOBAL_ACTION_BACK\"\n" +
-                "  }\n" +
-                " ]\n" +
-                "},{\n" +
-                " \"delay_time\":600,\n" +
-                " \"type_id\":3,\n" +
-                " \"describe\":\"修改系统设置才能设置铃声\",\n" +
-                " \"intent\":{\n" +
-                "  \"category\":\"android.intent.category.DEFAULT\",\n" +
-                "  \"actionName\":\"android.settings.action.MANAGE_WRITE_SETTINGS\"\n" +
-                " },\n" +
-                " \"step\":[\n" +
-                "  {\n" +
-                "   \"delay_time\":600,\n" +
-                "   \"find_text\":\"最来电\",\n" +
-                "   \"action_type\":\"ACTION_CLICK\",\n" +
-                "   \"click_type\":\"child\",\n" +
-                "   \"reality_node_name\":\"android.widget.TextView\",\n" +
-                "   \"reality_node_id\":\":id/app_switch\"\n" +
-                "  },{\n" +
-                "   \"click_type\":\"system\",\n" +
-                "   \"delay_time\":600,\n" +
+                "   \"delay_time\":1000,\n" +
                 "   \"action_type\":\"GLOBAL_ACTION_BACK\"\n" +
                 "  }\n" +
                 " ]\n" +
@@ -154,7 +132,7 @@ public class ASData {
                 "   \"action_type\":\"GLOBAL_ACTION_BACK\"\n" +
                 "  },{\n" +
                 "   \"click_type\":\"system\",\n" +
-                "   \"delay_time\":600,\n" +
+                "   \"delay_time\":1000,\n" +
                 "   \"action_type\":\"GLOBAL_ACTION_BACK\"\n" +
                 "  }\n" +
                 " ]\n" +

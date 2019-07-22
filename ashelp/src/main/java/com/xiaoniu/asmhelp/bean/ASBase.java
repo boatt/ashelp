@@ -1,5 +1,6 @@
 package com.xiaoniu.asmhelp.bean;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ import java.util.List;
  * Company: @小牛科技
  * Update
  */
-public class ASBase {
+public class ASBase implements Serializable {
 
     /**
      * 行为延迟时间
